@@ -297,3 +297,81 @@ export function denmarkNet(
     socialTax: social,
   };
 }
+
+const ITALY_NATIONAL_BANDS: TaxBand[] = [
+  [28_000, 0.23],
+  [50_000, 0.33],
+  [Infinity, 0.43],
+];
+
+const LOMBARDY_REGIONAL_BANDS: TaxBand[] = [
+  [15_000, 0.0123],
+  [28_000, 0.0158],
+  [50_000, 0.0172],
+  [Infinity, 0.0173],
+];
+
+function italyEmploymentCredit(taxableIncome: number) {
+  if (taxableIncome <= 15_000) return 1_955;
+  if (taxableIncome <= 28_000) {
+    return 1_910 + 1_190 * ((28_000 - taxableIncome) / 13_000);
+  }
+  if (taxableIncome <= 50_000) {
+    return 1_910 * ((50_000 - taxableIncome) / 22_000);
+  }
+  return 0;
+}
+
+function italyLocalTax(taxableIncome: number, city: "Milan" | "Rome") {
+  if (city === "Milan") {
+    const regional = progressiveTax(taxableIncome, LOMBARDY_REGIONAL_BANDS);
+    const municipal = taxableIncome <= 23_000 ? 0 : taxableIncome * 0.008;
+    return regional + municipal;
+  }
+
+  // Lazio applies 1.73% to the full base up to EUR 28,000. Above that level,
+  // the published 2026 rates are progressive. Rome adds 0.9% once the
+  // EUR 14,000 exemption threshold is exceeded.
+  const regional = taxableIncome <= 28_000
+    ? taxableIncome * 0.0173
+    : progressiveTax(taxableIncome, [
+      [15_000, 0.0173],
+      [28_000, 0.0333],
+      [50_000, 0.0333],
+      [Infinity, 0.0333],
+    ]) - (taxableIncome <= 30_000 ? 60 : 0);
+  const municipal = taxableIncome <= 14_000 ? 0 : taxableIncome * 0.009;
+  return Math.max(0, regional) + municipal;
+}
+
+export function italyNet(
+  gross: number,
+  useImpatriateRegime: boolean,
+  city: "Milan" | "Rome",
+) {
+  // Standard private-sector employee assumption. In 2026 an additional 1%
+  // employee contribution applies only to pay above EUR 56,224.
+  const social = gross * 0.0919 + Math.max(0, gross - 56_224) * 0.01;
+  const employmentIncome = Math.max(0, gross - social);
+  const qualifyingIncome = useImpatriateRegime
+    ? Math.min(employmentIncome, 600_000)
+    : 0;
+  const taxFree = qualifyingIncome * 0.5;
+  const taxable = employmentIncome - taxFree;
+  const nationalTax = progressiveTax(taxable, ITALY_NATIONAL_BANDS);
+  const employmentCredit = italyEmploymentCredit(taxable);
+  const localTax = italyLocalTax(taxable, city);
+  const tax = Math.max(0, nationalTax - employmentCredit) + localTax;
+
+  return {
+    net: gross - tax - social,
+    tax,
+    social,
+    taxable,
+    taxFree,
+    generalCredit: 0,
+    labourCredit: employmentCredit,
+    payrollTax: tax,
+    socialTax: social,
+  };
+}

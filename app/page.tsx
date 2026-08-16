@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { denmarkNet, germanyNet, portugalNet, spainNet, switzerlandNet } from "./tax";
+import { denmarkNet, germanyNet, italyNet, portugalNet, spainNet, switzerlandNet } from "./tax";
 
 type Country = "nl" | "pt" | "de" | "ch" | "es" | "dk" | "it" | "gb";
 type City = "Amsterdam" | "Rotterdam" | "Lisbon" | "Porto" | "Berlin" | "Munich" | "Zurich" | "Geneva" | "Madrid" | "Barcelona" | "Copenhagen" | "Aarhus" | "Milan" | "Rome" | "London" | "Manchester";
@@ -12,7 +12,7 @@ const countryInfo: Record<Country, { name: string; code: string; currency: strin
   ch: { name: "Switzerland", code: "CH", currency: "CHF", symbol: "CHF", salary: 110000, min: 40000, max: 300000, step: 2000 },
   es: { name: "Spain", code: "ES", currency: "EUR", symbol: "€", salary: 60000, min: 15000, max: 180000, step: 1000, regime: "Beckham Law", regimeHint: "24% employment-income rate up to €600,000 for eligible inbound workers." },
   dk: { name: "Denmark", code: "DK", currency: "DKK", symbol: "kr", salary: 600000, min: 200000, max: 1800000, step: 10000, regime: "Researcher / highly paid employee tax scheme", regimeHint: "32.84% combined gross tax for up to seven years; highly paid employees need DKK 65,400 per month in 2026, plus ATP." },
-  it: { name: "Italy", code: "IT", currency: "EUR", symbol: "€", salary: 65000, min: 15000, max: 180000, step: 1000, regime: "Impatriate regime", regimeHint: "Eligible workers may receive a 50% taxable-income exemption." },
+  it: { name: "Italy", code: "IT", currency: "EUR", symbol: "€", salary: 65000, min: 15000, max: 180000, step: 1000, regime: "Impatriate regime", regimeHint: "Eligible workers may receive a 50% employment-income exemption, up to the €600,000 annual limit." },
   gb: { name: "United Kingdom", code: "UK", currency: "GBP", symbol: "£", salary: 70000, min: 18000, max: 200000, step: 1000 },
 };
 const countryOrder: Country[] = ["nl", "pt", "de", "ch", "es", "dk", "it", "gb"];
@@ -69,13 +69,6 @@ function netherlandsNet(gross: number, ruling: boolean, includeSocialSecurity: b
   const due = Math.max(0, grossTax - generalCredit - labourCredit);
   return { net: gross - due, tax: due, social: socialTax, taxable, taxFree, generalCredit, labourCredit, payrollTax, socialTax };
 }
-function italyNet(gross:number, regime:boolean) {
-  const social=gross*.0919; const exempt=regime?Math.min(gross*.5,300000):0; const taxable=Math.max(0,gross-social-exempt);
-  const national=progressiveTax(taxable,[[28000,.23],[50000,.33],[Infinity,.43]]); const local=taxable*.02;
-  const employmentCredit = taxable <= 15000 ? 1955 : taxable <= 28000 ? 1910 + 1190 * (28000-taxable)/13000 : taxable <= 50000 ? 1910 * (50000-taxable)/22000 : 0;
-  const tax=Math.max(0,national+local-employmentCredit);
-  return { net:gross-tax-social,tax,social,taxable,taxFree:exempt,generalCredit:0,labourCredit:0,payrollTax:tax,socialTax:social };
-}
 function ukNet(gross:number) {
   const allowance=Math.max(0,12570-Math.max(0,gross-100000)/2); const taxable=Math.max(0,gross-allowance); const tax=progressiveTax(taxable,[[37700,.20],[125140-allowance,.40],[Infinity,.45]]); const social=Math.max(0,Math.min(gross,50270)-12570)*.08+Math.max(0,gross-50270)*.02;
   return { net:gross-tax-social,tax,social,taxable,taxFree:allowance,generalCredit:0,labourCredit:0,payrollTax:tax,socialTax:social };
@@ -96,7 +89,7 @@ export default function Home() {
     const holidayAllowance = country === "nl" ? (holidayMode === "included" ? salary * (8 / 108) : salary * .08) : 0;
     const baseSalary = country === "nl" && holidayMode === "included" ? salary - holidayAllowance : salary;
     const annualGross = baseSalary + holidayAllowance;
-    const payroll = country === "nl" ? netherlandsNet(annualGross, regime, includeSocialSecurity) : country === "pt" ? portugalNet(annualGross, regime) : country === "de" ? germanyNet(annualGross) : country === "es" ? spainNet(annualGross, regime, city as "Madrid" | "Barcelona") : country === "it" ? italyNet(annualGross,regime) : country === "dk" ? denmarkNet(annualGross, regime, denmarkResearcher, city as "Copenhagen" | "Aarhus") : country === "gb" ? ukNet(annualGross) : switzerlandNet(annualGross, city as "Zurich" | "Geneva");
+    const payroll = country === "nl" ? netherlandsNet(annualGross, regime, includeSocialSecurity) : country === "pt" ? portugalNet(annualGross, regime) : country === "de" ? germanyNet(annualGross) : country === "es" ? spainNet(annualGross, regime, city as "Madrid" | "Barcelona") : country === "it" ? italyNet(annualGross, regime, city as "Milan" | "Rome") : country === "dk" ? denmarkNet(annualGross, regime, denmarkResearcher, city as "Copenhagen" | "Aarhus") : country === "gb" ? ukNet(annualGross) : switzerlandNet(annualGross, city as "Zurich" | "Geneva");
     const base = livingCosts[city];
     const rent = rentMode === "share" ? base.rent * .62 : base.rent;
     const health = country === "nl" ? 165 : country === "ch" ? 420 : country === "pt" || country === "es" || country === "it" ? 55 : 0;
