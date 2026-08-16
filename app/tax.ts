@@ -239,3 +239,61 @@ export function spainNet(
     socialTax: social,
   };
 }
+
+export function denmarkNet(
+  gross: number,
+  useExpatScheme: boolean,
+  approvedResearcher: boolean,
+  city: "Copenhagen" | "Aarhus",
+) {
+  const atp = 1_188;
+  // AM-bidrag is withheld after the employee's ATP contribution.
+  const labourMarketContribution = Math.max(0, gross - atp) * 0.08;
+  const afterLabourMarketContribution = gross - atp - labourMarketContribution;
+  const salaryRouteQualifies = gross >= 65_400 * 12;
+
+  if (useExpatScheme && (approvedResearcher || salaryRouteQualifies)) {
+    const tax = afterLabourMarketContribution * 0.27;
+    const social = labourMarketContribution + atp;
+    return {
+      net: gross - tax - social,
+      tax,
+      social,
+      taxable: afterLabourMarketContribution,
+      taxFree: 0,
+      generalCredit: 0,
+      labourCredit: 0,
+      payrollTax: tax,
+      socialTax: social,
+    };
+  }
+
+  const personalAllowance = 54_100;
+  const employmentAllowance = Math.min(gross * 0.1275, 63_300);
+  const jobAllowance = Math.min(Math.max(0, gross - 235_200) * 0.045, 3_100);
+  const municipalRate = city === "Aarhus" ? 0.2452 : 0.2339;
+  const stateBase = Math.max(0, afterLabourMarketContribution - personalAllowance);
+  const municipalBase = Math.max(
+    0,
+    afterLabourMarketContribution - personalAllowance - employmentAllowance - jobAllowance,
+  );
+  const stateTax = stateBase * 0.1201
+    + Math.max(0, afterLabourMarketContribution - 641_200) * 0.075
+    + Math.max(0, afterLabourMarketContribution - 777_900) * 0.075
+    + Math.max(0, afterLabourMarketContribution - 2_592_700) * 0.05;
+  const municipalTax = municipalBase * municipalRate;
+  const tax = stateTax + municipalTax;
+  const social = labourMarketContribution + atp;
+
+  return {
+    net: gross - tax - social,
+    tax,
+    social,
+    taxable: stateBase,
+    taxFree: 0,
+    generalCredit: 0,
+    labourCredit: 0,
+    payrollTax: tax,
+    socialTax: social,
+  };
+}
