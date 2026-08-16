@@ -53,11 +53,15 @@
 
 .dutchOptions label {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 8px;
 }
 
-.dutchOptions select:disabled { opacity: .5; }
+.checkOption input { width: 17px; height: 17px; accent-color: var(--orange); flex: 0 0 auto; }
+.checkOption > span { display: flex; flex-direction: column; gap: 4px; }
+.checkOption b { font-size: 12px; }
+.checkOption small { font-size: 10px; opacity: .62; }
+.checkOption.disabled { opacity: .45; }
 .socialOption { display: flex; align-items: center; gap: 18px; }
 .socialOption > span { display: flex; flex-direction: column; gap: 4px; }
 .socialOption b { font-size: 12px; }
