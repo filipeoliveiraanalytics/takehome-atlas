@@ -1,0 +1,49 @@
+.holidayCard {
+  margin-top: 28px;
+  padding: 18px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.holidayHead,
+.holidayPayout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.holidayHead > span {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.holidayHead small { opacity: .65; }
+
+.holidayPayout {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid var(--line);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.segmented { display: flex; flex-shrink: 0; }
+.segmented button {
+  border: 1px solid var(--line);
+  background: transparent;
+  padding: 10px 12px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.segmented button + button { border-left: 0; }
+.segmented button.selected { background: var(--ink); color: white; }
+
+@media (max-width: 600px) {
+  .holidayHead,
+  .holidayPayout { align-items: flex-start; flex-direction: column; }
+  .segmented { width: 100%; }
+  .segmented button { flex: 1; }
+}

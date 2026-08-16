@@ -21,13 +21,26 @@ function progressiveTax(income: number, bands: [number, number][]) {
   }
   return tax;
 }
+function dutchGeneralCredit(income: number) {
+  if (income <= 29736) return 3115;
+  if (income >= 78426) return 0;
+  return 3115 - .06398 * (income - 29736);
+}
+function dutchLabourCredit(income: number) {
+  if (income <= 11965) return .08324 * income;
+  if (income <= 25845) return 996 + .31009 * (income - 11965);
+  if (income <= 45592) return 5300 + .0195 * (income - 25845);
+  if (income <= 132920) return Math.max(0, 5685 - .0651 * (income - 45592));
+  return 0;
+}
 function netherlandsNet(gross: number, ruling: boolean) {
-  const taxable = ruling ? gross * .7 : gross;
+  const taxFree = ruling ? Math.min(gross * .3, 78600, Math.max(0, gross - 48013)) : 0;
+  const taxable = gross - taxFree;
   const tax = progressiveTax(taxable, [[38883, .3575], [78426, .3756], [Infinity, .495]]);
-  const generalCredit = Math.max(0, 3115 - Math.max(0, taxable - 29000) * .066);
-  const labourCredit = Math.max(0, Math.min(5599, taxable * .09) - Math.max(0, taxable - 45000) * .065);
+  const generalCredit = dutchGeneralCredit(taxable);
+  const labourCredit = dutchLabourCredit(taxable);
   const due = Math.max(0, tax - generalCredit - labourCredit);
-  return { net: gross - due, tax: due, social: 0 };
+  return { net: gross - due, tax: due, social: 0, taxable, taxFree, generalCredit, labourCredit };
 }
 function portugalNet(gross: number, regime: boolean) {
   const social = gross * .11;
@@ -45,15 +58,21 @@ export default function Home() {
   const [kids, setKids] = useState(0);
   const [regime, setRegime] = useState(true);
   const [rentMode, setRentMode] = useState<"solo" | "share">("solo");
+  const [holidayMode, setHolidayMode] = useState<"included" | "onTop">("included");
+  const [holidayPayout, setHolidayPayout] = useState<"spread" | "may">("spread");
   const result = useMemo(() => {
-    const payroll = country === "nl" ? netherlandsNet(salary, regime) : portugalNet(salary, regime);
+    const holidayAllowance = country === "nl" && holidayMode === "onTop" ? salary * .08 : 0;
+    const annualGross = salary + holidayAllowance;
+    const payroll = country === "nl" ? netherlandsNet(annualGross, regime) : portugalNet(annualGross, regime);
     const base = livingCosts[city];
     const rent = rentMode === "share" ? base.rent * .62 : base.rent;
     const health = country === "nl" ? 165 : 45;
     const household = rent + base.groceries + base.utilities + base.transport + base.leisure + health + kids * base.childcare;
-    const monthlyNet = payroll.net / 12;
-    return { ...payroll, monthlyNet, household, savings: monthlyNet - household, rent, health };
-  }, [country, city, salary, kids, regime, rentMode]);
+    const averageMonthlyNet = payroll.net / 12;
+    const holidayNet = holidayAllowance ? holidayAllowance * (payroll.net / annualGross) : 0;
+    const monthlyNet = holidayPayout === "may" && holidayAllowance ? (payroll.net - holidayNet) / 12 : averageMonthlyNet;
+    return { ...payroll, annualGross, holidayAllowance, holidayNet, averageMonthlyNet, monthlyNet, household, savings: monthlyNet - household, rent, health };
+  }, [country, city, salary, kids, regime, rentMode, holidayMode, holidayPayout]);
   function chooseCountry(next: Country) { setCountry(next); setCity(cities[next][0]); setRegime(true); }
   const costs = livingCosts[city];
   const costRows: [string, number][] = [["Housing", result.rent], ["Groceries", costs.groceries], ["Utilities", costs.utilities], ["Transport", costs.transport], ["Health", result.health], ["Lifestyle", costs.leisure], ...(kids ? [[`Childcare × ${kids}`, costs.childcare * kids] as [string, number]] : [])];
@@ -68,12 +87,13 @@ export default function Home() {
           <label className="fieldLabel">COUNTRY</label><div className="countryToggle"><button type="button" className={country === "nl" ? "active" : ""} onClick={() => chooseCountry("nl")}><span>NL</span> Netherlands</button><button type="button" className={country === "pt" ? "active" : ""} onClick={() => chooseCountry("pt")}><span>PT</span> Portugal</button></div>
           <div className="twoCol"><label><span className="fieldLabel">CITY</span><select value={city} onChange={e => setCity(e.target.value as City)}>{cities[country].map(item => <option key={item}>{item}</option>)}</select></label><label><span className="fieldLabel">CHILDREN</span><select value={kids} onChange={e => setKids(Number(e.target.value))}><option value="0">No children</option><option value="1">1 child</option><option value="2">2 children</option><option value="3">3 children</option></select></label></div>
           <label className="salaryField"><span className="fieldLabel">GROSS ANNUAL SALARY</span><span className="salaryInput"><i>€</i><input aria-label="Gross annual salary" type="number" min="10000" step="1000" value={salary} onChange={e => setSalary(Number(e.target.value))}/><em>/ year</em></span></label><input className="range" aria-label="Salary slider" type="range" min="20000" max="180000" step="1000" value={salary} onChange={e => setSalary(Number(e.target.value))}/><div className="rangeEnds"><span>€20k</span><span>€180k</span></div>
+          {country === "nl" && <div className="holidayCard"><div className="holidayHead"><span><span className="fieldLabel">8% HOLIDAY ALLOWANCE</span><small>Is vakantiegeld already part of the salary above?</small></span><div className="segmented"><button type="button" className={holidayMode === "included" ? "selected" : ""} onClick={() => setHolidayMode("included")}>Included</button><button type="button" className={holidayMode === "onTop" ? "selected" : ""} onClick={() => setHolidayMode("onTop")}>Paid on top</button></div></div>{holidayMode === "onTop" && <div className="holidayPayout"><span>Payment timing</span><div className="segmented"><button type="button" className={holidayPayout === "spread" ? "selected" : ""} onClick={() => setHolidayPayout("spread")}>Spread over 12</button><button type="button" className={holidayPayout === "may" ? "selected" : ""} onClick={() => setHolidayPayout("may")}>Paid in May</button></div></div>}</div>}
           <div className="regimeCard"><div><span className="fieldLabel">EXPAT TAX REGIME</span><strong>{country === "nl" ? "30% ruling" : "IFICI (NHR 2.0)"}</strong><small>{country === "nl" ? "Up to 30% of qualifying pay may be tax-free." : "20% rate on eligible Portuguese-source employment income."}</small></div><button type="button" role="switch" aria-checked={regime} className={`switch ${regime ? "on" : ""}`} onClick={() => setRegime(!regime)}><span/></button></div><p className="eligibility">ⓘ Eligibility is not verified. Employer, role, timing and salary requirements apply.</p>
           <div className="housingRow"><span><b>Housing</b><small>How will you live?</small></span><div><button type="button" className={rentMode === "solo" ? "selected" : ""} onClick={() => setRentMode("solo")}>My own place</button><button type="button" className={rentMode === "share" ? "selected" : ""} onClick={() => setRentMode("share")}>Shared</button></div></div>
         </form>
         <aside className="results" aria-live="polite">
-          <div className="resultTop"><span>YOUR ESTIMATED MONTHLY OUTCOME</span><b>{city}, {country.toUpperCase()}</b></div><div className="netBlock"><small>NET INCOME</small><strong>{euro.format(result.monthlyNet)}</strong><span>per month · annualized over 12 months</span></div>
-          <div className="flow"><div><span>Gross salary</span><b>{euro.format(salary/12)}</b></div><div><span>Income tax</span><b>− {euro.format(result.tax/12)}</b></div>{country === "pt" && <div><span>Social security</span><b>− {euro.format(result.social/12)}</b></div>}<div><span>Living costs</span><b>− {euro.format(result.household)}</b></div></div>
+          <div className="resultTop"><span>YOUR ESTIMATED MONTHLY OUTCOME</span><b>{city}, {country.toUpperCase()}</b></div><div className="netBlock"><small>{holidayPayout === "may" && result.holidayAllowance ? "REGULAR-MONTH NET" : "NET INCOME"}</small><strong>{euro.format(result.monthlyNet)}</strong><span>{holidayPayout === "may" && result.holidayAllowance ? `per regular month · May adds about ${euro.format(result.holidayNet)} net holiday pay` : "per month · annualized over 12 months"}</span></div>
+          <div className="flow"><div><span>{result.holidayAllowance ? "Total gross package" : "Gross salary"}</span><b>{euro.format(result.annualGross/12)}</b></div>{result.holidayAllowance > 0 && <div><span>8% holiday allowance</span><b>+ {euro.format(result.holidayAllowance/12)}</b></div>}<div><span>Income tax</span><b>− {euro.format(result.tax/12)}</b></div>{country === "pt" && <div><span>Social security</span><b>− {euro.format(result.social/12)}</b></div>}<div><span>Living costs</span><b>− {euro.format(result.household)}</b></div></div>
           <div className={`savings ${result.savings < 0 ? "negative" : ""}`}><span><small>POSSIBLE SAVINGS</small><b>{euro.format(result.savings)}</b></span><em>{Math.round(result.savings/result.monthlyNet*100)}% of net</em></div>
           <div className="costBreakdown"><div className="costTitle"><b>Monthly cost estimate</b><span>{city} · {rentMode}</span></div>{costRows.map(([name,amount]) => <div className="costRow" key={name}><span>{name}</span><b>{euro.format(amount)}</b></div>)}</div><p className="resultNote">A planning estimate, not tax advice. Pension, benefits, bonuses and personal deductions are excluded.</p>
         </aside>
