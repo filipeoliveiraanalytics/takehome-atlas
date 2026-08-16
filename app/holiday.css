@@ -41,17 +41,55 @@
 .segmented button + button { border-left: 0; }
 .segmented button.selected { background: var(--ink); color: white; }
 
-.dutchOptions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 14px;
-  padding: 18px;
-  background: #e7e0d2;
+.dutchTaxCard {
+  margin-top: 28px;
+  border: 1px solid var(--line);
+  background: rgba(231,224,210,.6);
 }
-.socialOption { display: flex; align-items: center; gap: 18px; }
-.socialOption > span { display: flex; flex-direction: column; gap: 4px; }
-.socialOption b { font-size: 12px; }
-.socialOption small { font-size: 10px; opacity: .62; }
+.taxCardTitle {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 15px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.taxCardTitle small { font-size: 10px; opacity: .58; }
+.taxSettingRow {
+  min-height: 72px;
+  padding: 15px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.taxSettingRow + .taxSettingRow { border-top: 1px solid var(--line); }
+.taxSettingRow > span { display: flex; flex-direction: column; gap: 5px; }
+.taxSettingRow b { font: italic 600 21px Georgia, serif; }
+.taxSettingRow small { font-size: 10px; opacity: .65; }
+.eligibility {
+  margin: 0;
+  padding: 15px 18px;
+  opacity: 1;
+  font-size: inherit;
+  border-top: 1px solid var(--line);
+  background: rgba(243,238,227,.72);
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 11px;
+  align-items: start;
+}
+.eligibility p { margin: 0; font-size: 10px; line-height: 1.55; opacity: .72; }
+.eligibility p b { display: block; margin-bottom: 2px; color: var(--ink); opacity: 1; }
+.infoMark {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+  font: italic 700 11px Georgia, serif;
+}
 
 .payrollBreakdown {
   margin-top: 20px;
@@ -83,6 +121,5 @@
   .holidayPayout { align-items: flex-start; flex-direction: column; }
   .segmented { width: 100%; }
   .segmented button { flex: 1; }
-  .dutchOptions { justify-content: stretch; }
-  .socialOption { justify-content: space-between; }
+  .taxCardTitle { align-items: flex-start; flex-direction: column; gap: 5px; }
 }
