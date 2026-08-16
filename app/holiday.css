@@ -123,3 +123,148 @@
   .segmented button { flex: 1; }
   .taxCardTitle { align-items: flex-start; flex-direction: column; gap: 5px; }
 }
+
+/* Hybrid product/editorial calculator layout */
+.workspace {
+  grid-template-columns: minmax(340px, .72fr) minmax(0, 1.28fr);
+  align-items: start;
+  gap: 22px;
+  background: transparent;
+}
+.inputs {
+  position: sticky;
+  top: 20px;
+  padding: 30px;
+  border: 1px solid rgba(243,238,227,.22);
+  background: var(--cream);
+  box-shadow: 0 20px 50px rgba(4,24,19,.18);
+}
+.countryToggle { margin-bottom: 26px; }
+.twoCol { margin-bottom: 25px; }
+.holidayCard,
+.dutchTaxCard { margin-top: 22px; }
+.results {
+  min-width: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: transparent;
+  color: var(--ink);
+}
+.resultTop {
+  min-height: 42px;
+  padding: 0 4px 12px;
+  color: var(--cream);
+  border-bottom-color: rgba(243,238,227,.22);
+}
+.netBlock {
+  position: relative;
+  overflow: hidden;
+  padding: 28px 30px 0;
+  background: var(--lime);
+  border: 1px solid rgba(243,238,227,.15);
+}
+.netBlock::after {
+  content: "€";
+  position: absolute;
+  z-index: 0;
+  right: 18px;
+  top: -32px;
+  font: italic 500 180px/1 Georgia, serif;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(24,59,50,.13);
+  pointer-events: none;
+}
+.netBlock > * { position: relative; z-index: 1; }
+.netBlock strong {
+  width: fit-content;
+  margin: 10px 0 6px;
+  font-size: clamp(62px,7vw,92px);
+}
+.summaryStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 26px -30px 0;
+  border-top: 1px solid rgba(24,59,50,.2);
+}
+.summaryStats > div {
+  min-width: 0;
+  padding: 14px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.summaryStats > div + div { border-left: 1px solid rgba(24,59,50,.2); }
+.summaryStats small { font-size: 9px; opacity: .62; }
+.summaryStats b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font: italic 600 19px Georgia, serif;
+  white-space: nowrap;
+}
+.flow,
+.payrollBreakdown,
+.costBreakdown,
+.savings {
+  border: 1px solid rgba(243,238,227,.18);
+  background: var(--cream);
+}
+.flow {
+  padding: 17px 22px;
+}
+.flow div { padding: 7px 0; }
+.flow div + div { border-top: 1px solid rgba(24,59,50,.09); }
+.payrollBreakdown {
+  margin-top: 0;
+  padding: 0 22px;
+}
+.payrollRows > div { padding: 7px 0; }
+.savings {
+  padding: 22px;
+  border-left: 5px solid var(--orange);
+}
+.savings b { font-size: 42px; }
+.costBreakdown { padding: 22px; }
+.costMeter {
+  height: 7px;
+  margin-top: 17px;
+  overflow: hidden;
+  background: rgba(24,59,50,.11);
+}
+.costMeter span {
+  display: block;
+  height: 100%;
+  background: var(--orange);
+  transition: width .35s ease;
+}
+.costShare {
+  margin: 7px 0 13px;
+  color: rgba(24,59,50,.62);
+  font-size: 9px;
+}
+.costRow {
+  padding: 9px 0;
+  border-top: 1px solid rgba(24,59,50,.09);
+}
+.resultNote {
+  margin: 0;
+  padding: 2px 4px 0;
+  color: var(--cream);
+}
+
+@media (max-width: 900px) {
+  .workspace { grid-template-columns: 1fr; }
+  .inputs { position: static; }
+  .results { min-height: 0; }
+}
+
+@media (max-width: 600px) {
+  .inputs { padding: 24px 20px; }
+  .results { padding: 0; }
+  .netBlock { padding: 24px 20px 0; }
+  .netBlock strong { font-size: 60px; }
+  .summaryStats { margin: 22px -20px 0; grid-template-columns: 1fr 1fr; }
+  .summaryStats > div { padding: 13px 12px; }
+  .summaryStats > div:nth-child(3) { grid-column: 1 / -1; border-left: 0; border-top: 1px solid rgba(24,59,50,.2); }
+}
