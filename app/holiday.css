@@ -42,26 +42,12 @@
 .segmented button.selected { background: var(--ink); color: white; }
 
 .dutchOptions {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 18px;
-  align-items: end;
+  display: flex;
+  justify-content: flex-end;
   margin-top: 14px;
   padding: 18px;
   background: #e7e0d2;
 }
-
-.dutchOptions label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.checkOption input { width: 17px; height: 17px; accent-color: var(--orange); flex: 0 0 auto; }
-.checkOption > span { display: flex; flex-direction: column; gap: 4px; }
-.checkOption b { font-size: 12px; }
-.checkOption small { font-size: 10px; opacity: .62; }
-.checkOption.disabled { opacity: .45; }
 .socialOption { display: flex; align-items: center; gap: 18px; }
 .socialOption > span { display: flex; flex-direction: column; gap: 4px; }
 .socialOption b { font-size: 12px; }
@@ -97,6 +83,6 @@
   .holidayPayout { align-items: flex-start; flex-direction: column; }
   .segmented { width: 100%; }
   .segmented button { flex: 1; }
-  .dutchOptions { grid-template-columns: 1fr; align-items: stretch; }
+  .dutchOptions { justify-content: stretch; }
   .socialOption { justify-content: space-between; }
 }

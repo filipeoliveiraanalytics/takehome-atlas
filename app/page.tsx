@@ -33,8 +33,8 @@ function dutchLabourCredit(income: number) {
   if (income <= 132920) return Math.max(0, 5685 - .0651 * (income - 45592));
   return 0;
 }
-function netherlandsNet(gross: number, ruling: boolean, under30Masters: boolean, includeSocialSecurity: boolean) {
-  const salaryNorm = under30Masters ? 36497 : 48013;
+function netherlandsNet(gross: number, ruling: boolean, includeSocialSecurity: boolean) {
+  const salaryNorm = 48013;
   const taxFree = ruling ? Math.min(gross * .3, 78600, Math.max(0, gross - salaryNorm)) : 0;
   const taxable = gross - taxFree;
   const payrollTax = progressiveTax(taxable, [[38883, .081], [78426, .3756], [Infinity, .495]]);
@@ -63,12 +63,11 @@ export default function Home() {
   const [rentMode, setRentMode] = useState<"solo" | "share">("solo");
   const [holidayMode, setHolidayMode] = useState<"included" | "onTop">("included");
   const [holidayPayout, setHolidayPayout] = useState<"spread" | "may">("spread");
-  const [under30Masters, setUnder30Masters] = useState(false);
   const [includeSocialSecurity, setIncludeSocialSecurity] = useState(true);
   const result = useMemo(() => {
     const holidayAllowance = country === "nl" && holidayMode === "onTop" ? salary * .08 : 0;
     const annualGross = salary + holidayAllowance;
-    const payroll = country === "nl" ? netherlandsNet(annualGross, regime, under30Masters, includeSocialSecurity) : portugalNet(annualGross, regime);
+    const payroll = country === "nl" ? netherlandsNet(annualGross, regime, includeSocialSecurity) : portugalNet(annualGross, regime);
     const base = livingCosts[city];
     const rent = rentMode === "share" ? base.rent * .62 : base.rent;
     const health = country === "nl" ? 165 : 45;
@@ -77,7 +76,7 @@ export default function Home() {
     const holidayNet = holidayAllowance ? holidayAllowance * (payroll.net / annualGross) : 0;
     const monthlyNet = holidayPayout === "may" && holidayAllowance ? (payroll.net - holidayNet) / 12 : averageMonthlyNet;
     return { ...payroll, annualGross, holidayAllowance, holidayNet, averageMonthlyNet, monthlyNet, household, savings: monthlyNet - household, rent, health };
-  }, [country, city, salary, kids, regime, rentMode, holidayMode, holidayPayout, under30Masters, includeSocialSecurity]);
+  }, [country, city, salary, kids, regime, rentMode, holidayMode, holidayPayout, includeSocialSecurity]);
   function chooseCountry(next: Country) { setCountry(next); setCity(cities[next][0]); setRegime(true); }
   const costs = livingCosts[city];
   const costRows: [string, number][] = [["Housing", result.rent], ["Groceries", costs.groceries], ["Utilities", costs.utilities], ["Transport", costs.transport], ["Health", result.health], ["Lifestyle", costs.leisure], ...(kids ? [[`Childcare × ${kids}`, costs.childcare * kids] as [string, number]] : [])];
@@ -94,8 +93,8 @@ export default function Home() {
           <label className="salaryField"><span className="fieldLabel">GROSS ANNUAL SALARY</span><span className="salaryInput"><i>€</i><input aria-label="Gross annual salary" type="number" min="10000" step="1000" value={salary} onChange={e => setSalary(Number(e.target.value))}/><em>/ year</em></span></label><input className="range" aria-label="Salary slider" type="range" min="20000" max="180000" step="1000" value={salary} onChange={e => setSalary(Number(e.target.value))}/><div className="rangeEnds"><span>€20k</span><span>€180k</span></div>
           {country === "nl" && <div className="holidayCard"><div className="holidayHead"><span><span className="fieldLabel">8% HOLIDAY ALLOWANCE</span><small>Is vakantiegeld already part of the salary above?</small></span><div className="segmented"><button type="button" className={holidayMode === "included" ? "selected" : ""} onClick={() => setHolidayMode("included")}>Included</button><button type="button" className={holidayMode === "onTop" ? "selected" : ""} onClick={() => setHolidayMode("onTop")}>Paid on top</button></div></div>{holidayMode === "onTop" && <div className="holidayPayout"><span>Payment timing</span><div className="segmented"><button type="button" className={holidayPayout === "spread" ? "selected" : ""} onClick={() => setHolidayPayout("spread")}>Spread over 12</button><button type="button" className={holidayPayout === "may" ? "selected" : ""} onClick={() => setHolidayPayout("may")}>Paid in May</button></div></div>}</div>}
           <div className="regimeCard"><div><span className="fieldLabel">EXPAT TAX REGIME</span><strong>{country === "nl" ? "30% ruling" : "IFICI (NHR 2.0)"}</strong><small>{country === "nl" ? "Up to 30% of qualifying pay may be tax-free." : "20% rate on eligible Portuguese-source employment income."}</small></div><button type="button" role="switch" aria-label={country === "nl" ? "Apply 30% ruling" : "Apply IFICI"} aria-checked={regime} className={`switch ${regime ? "on" : ""}`} onClick={() => setRegime(!regime)}><span/></button></div>
-          {country === "nl" && <div className="dutchOptions"><label className={`checkOption ${!regime ? "disabled" : ""}`}><input type="checkbox" checked={under30Masters} disabled={!regime} onChange={e => setUnder30Masters(e.target.checked)}/><span><b>Under 30 with a qualifying master’s</b><small>Uses the reduced €36,497 taxable-salary norm.</small></span></label><div className="socialOption"><span><b>National insurance</b><small>AOW, Anw and Wlz contributions</small></span><button type="button" role="switch" aria-label="Include national insurance" aria-checked={includeSocialSecurity} className={`switch ${includeSocialSecurity ? "on" : ""}`} onClick={() => setIncludeSocialSecurity(!includeSocialSecurity)}><span/></button></div></div>}
-          <p className="eligibility">ⓘ Eligibility is not verified. Standard taxable-salary norm: €48,013. Qualifying scientific researchers may be exempt from the salary norm.</p>
+          {country === "nl" && <div className="dutchOptions"><div className="socialOption"><span><b>National insurance</b><small>AOW, Anw and Wlz contributions</small></span><button type="button" role="switch" aria-label="Include national insurance" aria-checked={includeSocialSecurity} className={`switch ${includeSocialSecurity ? "on" : ""}`} onClick={() => setIncludeSocialSecurity(!includeSocialSecurity)}><span/></button></div></div>}
+          <p className="eligibility">ⓘ The 30% ruling is generally for employees recruited from abroad with scarce expertise who lived more than 150 km from the Dutch border for over 16 of the previous 24 months. The 2026 taxable-salary norm is €48,013 (€36,497 if under 30 with a qualifying master’s); qualifying researchers may be exempt. Your employer must apply with you.</p>
           <div className="housingRow"><span><b>Housing</b><small>How will you live?</small></span><div><button type="button" className={rentMode === "solo" ? "selected" : ""} onClick={() => setRentMode("solo")}>My own place</button><button type="button" className={rentMode === "share" ? "selected" : ""} onClick={() => setRentMode("share")}>Shared</button></div></div>
         </form>
         <aside className="results" aria-live="polite">
