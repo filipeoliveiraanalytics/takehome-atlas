@@ -612,3 +612,45 @@ footer {
   .netBlock { padding: 24px 20px 0; }
   .summaryStats > div:nth-child(3) { border-color: var(--dark-line); }
 }
+
+/* Country-responsive color systems */
+main[data-country="nl"] { --ink:#102d3a; --canvas:#0c2631; --surface:#163947; --surface-2:#1d4757; --lime:#ff8a34; --mint:#68b8e8; --orange:#ef6a57; --cream:#f7f2e8; }
+main[data-country="pt"] { --ink:#12372f; --canvas:#0d2b25; --surface:#19463b; --surface-2:#205347; --lime:#f2cf4a; --mint:#62d093; --orange:#d84d4d; --cream:#f7f2e8; }
+main[data-country="de"] { --ink:#191919; --canvas:#111111; --surface:#242424; --surface-2:#303030; --lime:#f2c94c; --mint:#e77769; --orange:#d34c43; --cream:#f5f2e9; }
+main[data-country="ch"] { --ink:#3a1419; --canvas:#2c0d12; --surface:#4a1b22; --surface-2:#59242b; --lime:#f8f5ed; --mint:#ff858b; --orange:#d52b3a; --cream:#fffaf2; }
+main[data-country="es"] { --ink:#3b2412; --canvas:#2e1a0c; --surface:#4a3018; --surface-2:#5a3b1f; --lime:#ffc938; --mint:#ef6d57; --orange:#d94b3d; --cream:#fff6e4; }
+main[data-country="dk"] { --ink:#3c1019; --canvas:#2d0b12; --surface:#4c1722; --surface-2:#5b202b; --lime:#ffffff; --mint:#f29aa6; --orange:#c8102e; --cream:#fff9f7; }
+main[data-country="it"] { --ink:#14372f; --canvas:#0e2b25; --surface:#1b463b; --surface-2:#235448; --lime:#f7f3e9; --mint:#62cd8c; --orange:#d65a56; --cream:#fffaf0; }
+main[data-country="gb"] { --ink:#111d38; --canvas:#0b152b; --surface:#192847; --surface-2:#223555; --lime:#f6f2e8; --mint:#dc6975; --orange:#4d6fae; --cream:#f9f5ed; }
+
+main {
+  min-height: 100vh;
+  background: var(--ink);
+  color: var(--cream);
+  transition: background-color .28s ease, color .28s ease;
+}
+.calculator { background: var(--canvas, #102b2b); }
+.method,
+footer { background: var(--ink); }
+.brandMark { background: var(--lime); }
+.inputs,
+.netBlock,
+.flow,
+.payrollBreakdown,
+.costBreakdown,
+.savings,
+.standardCard,
+.countryToggle button,
+select,
+.segmented button,
+.housingRow button,
+.dutchTaxCard,
+.regimeCard,
+.calculator,
+.method,
+footer,
+.brandMark,
+.heroCta,
+.saveButton {
+  transition: background-color .28s ease, border-color .28s ease, color .28s ease;
+}

@@ -144,7 +144,7 @@ export default function Home() {
   const costs = livingCosts[city];
   const costRows: [string, number][] = [["Housing", result.rent], ["Groceries", costs.groceries], ["Utilities", costs.utilities], ["Transport", costs.transport], ["Health", result.health], ["Lifestyle", costs.leisure], ...(kids ? [[`Childcare × ${kids}`, costs.childcare * kids] as [string, number]] : [])];
 
-  return <main>
+  return <main data-country={country}>
     <nav className="nav"><a className="brand" href="#top"><span className="brandMark">R</span> ROAM</a><div className="navLinks"><a href="#calculator">Calculator</a><a href="#method">Methodology</a></div><button className="saveButton">Save scenario <span>↗</span></button></nav>
     <section className="hero" id="top"><div className="eyebrow"><span>●</span> NET SALARY, HONESTLY</div><h1>Every offer, converted into <span>what you actually keep.</span></h1><p>Compare take-home pay, expat tax regimes, local living costs and realistic monthly savings before you accept the offer.</p><a href="#calculator" className="heroCta">Run your numbers <span>↓</span></a><div className="heroStamp"><b>2026</b><span>Tax rules<br/>& cost data</span></div></section>
     <section className="calculator" id="calculator">
