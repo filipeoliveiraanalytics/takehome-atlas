@@ -2,14 +2,33 @@
 
 import { useMemo, useState } from "react";
 
-type Country = "nl" | "pt";
-type City = "Amsterdam" | "Rotterdam" | "Lisbon" | "Porto";
-const cities: Record<Country, City[]> = { nl: ["Amsterdam", "Rotterdam"], pt: ["Lisbon", "Porto"] };
+type Country = "nl" | "pt" | "de" | "ch" | "es" | "dk" | "it";
+type City = "Amsterdam" | "Rotterdam" | "Lisbon" | "Porto" | "Berlin" | "Munich" | "Zurich" | "Geneva" | "Madrid" | "Barcelona" | "Copenhagen" | "Aarhus" | "Milan" | "Rome";
+const countryInfo: Record<Country, { name: string; code: string; regime?: string; regimeHint?: string }> = {
+  nl: { name: "Netherlands", code: "NL", regime: "30% ruling", regimeHint: "Up to 30% of qualifying pay may be tax-free." },
+  pt: { name: "Portugal", code: "PT", regime: "IFICI (NHR 2.0)", regimeHint: "20% rate on eligible Portuguese-source employment income." },
+  de: { name: "Germany", code: "DE" }, ch: { name: "Switzerland", code: "CH" },
+  es: { name: "Spain", code: "ES", regime: "Beckham Law", regimeHint: "24% employment-income rate up to €600,000 for eligible inbound workers." },
+  dk: { name: "Denmark", code: "DK" },
+  it: { name: "Italy", code: "IT", regime: "Impatriate regime", regimeHint: "Eligible workers may receive a 50% taxable-income exemption." },
+};
+const countryOrder: Country[] = ["nl", "pt", "de", "ch", "es", "dk", "it"];
+const cities: Record<Country, City[]> = { nl: ["Amsterdam", "Rotterdam"], pt: ["Lisbon", "Porto"], de: ["Berlin", "Munich"], ch: ["Zurich", "Geneva"], es: ["Madrid", "Barcelona"], dk: ["Copenhagen", "Aarhus"], it: ["Milan", "Rome"] };
 const livingCosts: Record<City, { rent: number; groceries: number; utilities: number; transport: number; leisure: number; childcare: number }> = {
   Amsterdam: { rent: 2100, groceries: 475, utilities: 260, transport: 125, leisure: 350, childcare: 1050 },
   Rotterdam: { rent: 1650, groceries: 450, utilities: 250, transport: 110, leisure: 310, childcare: 950 },
   Lisbon: { rent: 1450, groceries: 350, utilities: 170, transport: 50, leisure: 260, childcare: 480 },
   Porto: { rent: 1100, groceries: 325, utilities: 160, transport: 40, leisure: 230, childcare: 420 },
+  Berlin: { rent: 1450, groceries: 390, utilities: 250, transport: 85, leisure: 280, childcare: 350 },
+  Munich: { rent: 1950, groceries: 430, utilities: 270, transport: 70, leisure: 320, childcare: 500 },
+  Zurich: { rent: 2450, groceries: 650, utilities: 260, transport: 95, leisure: 450, childcare: 1800 },
+  Geneva: { rent: 2300, groceries: 670, utilities: 250, transport: 75, leisure: 430, childcare: 1700 },
+  Madrid: { rent: 1500, groceries: 360, utilities: 180, transport: 55, leisure: 280, childcare: 550 },
+  Barcelona: { rent: 1650, groceries: 370, utilities: 190, transport: 50, leisure: 300, childcare: 600 },
+  Copenhagen: { rent: 1950, groceries: 520, utilities: 220, transport: 95, leisure: 380, childcare: 520 },
+  Aarhus: { rent: 1350, groceries: 480, utilities: 210, transport: 75, leisure: 320, childcare: 450 },
+  Milan: { rent: 1650, groceries: 390, utilities: 220, transport: 40, leisure: 300, childcare: 650 },
+  Rome: { rent: 1450, groceries: 380, utilities: 220, transport: 35, leisure: 290, childcare: 600 },
 };
 
 function progressiveTax(income: number, bands: [number, number][]) {
@@ -52,6 +71,39 @@ function portugalNet(gross: number, regime: boolean) {
   const tax = regime ? taxable * .2 : regularTax;
   return { net: gross - social - tax, tax, social, taxable, taxFree: 0, generalCredit: 0, labourCredit: 0, payrollTax: tax, socialTax: social };
 }
+function germanyNet(gross: number) {
+  const taxable = Math.max(0, gross - 1230);
+  const x = Math.floor(taxable);
+  let incomeTax = 0;
+  if (x > 277825) incomeTax = .45*x - 19470.38;
+  else if (x > 69878) incomeTax = .42*x - 11135.63;
+  else if (x > 17799) { const z=(x-17799)/10000; incomeTax=(173.10*z+2397)*z+1034.87; }
+  else if (x > 12348) { const y=(x-12348)/10000; incomeTax=(914.51*y+1400)*y; }
+  const social = Math.min(gross, 101400)*.113 + Math.min(gross, 70200)*.1055;
+  const solidarity = incomeTax > 40700 ? incomeTax*.055 : 0;
+  const tax = Math.max(0,incomeTax+solidarity);
+  return { net:gross-tax-social,tax,social,taxable,taxFree:0,generalCredit:0,labourCredit:0,payrollTax:tax,socialTax:social };
+}
+function spainNet(gross:number, regime:boolean) {
+  const social=Math.min(gross,61200)*.0648;
+  const taxable=Math.max(0,gross-social-2000);
+  const incomeTax=regime ? Math.min(taxable,600000)*.24+Math.max(0,taxable-600000)*.47 : progressiveTax(taxable,[[12450,.19],[20200,.24],[35200,.30],[60000,.37],[300000,.45],[Infinity,.47]]);
+  return { net:gross-incomeTax-social,tax:incomeTax,social,taxable,taxFree:regime?gross-taxable:0,generalCredit:0,labourCredit:0,payrollTax:incomeTax,socialTax:social };
+}
+function italyNet(gross:number, regime:boolean) {
+  const social=gross*.0919; const exempt=regime?Math.min(gross*.5,300000):0; const taxable=Math.max(0,gross-social-exempt);
+  const national=progressiveTax(taxable,[[28000,.23],[50000,.35],[Infinity,.43]]); const local=taxable*.02; const tax=national+local;
+  return { net:gross-tax-social,tax,social,taxable,taxFree:exempt,generalCredit:0,labourCredit:0,payrollTax:tax,socialTax:social };
+}
+function denmarkNet(grossEur:number) {
+  const gross=grossEur*7.46, am=gross*.08, afterAm=gross-am, allowance=51600, employment=Math.min(gross*.1275,63471), job=Math.min(Math.max(0,gross-235200)*.045,3100);
+  const taxable=Math.max(0,afterAm-allowance-employment-job); const state=taxable*.1201+Math.max(0,afterAm-641200)*.075+Math.max(0,afterAm-777900)*.075+Math.max(0,afterAm-2592700)*.05; const municipal=taxable*.236; const taxDkk=state+municipal; const tax=taxDkk/7.46, social=am/7.46;
+  return { net:grossEur-tax-social,tax,social,taxable:taxable/7.46,taxFree:0,generalCredit:0,labourCredit:0,payrollTax:tax,socialTax:social };
+}
+function switzerlandNet(gross:number, city:City) {
+  const social=gross*.064; const taxable=Math.max(0,gross-social-5500); const bands=city==="Geneva"?[[30000,.08],[80000,.16],[150000,.24],[Infinity,.30]] as [number,number][]:[[30000,.05],[80000,.12],[150000,.19],[Infinity,.25]] as [number,number][]; const tax=progressiveTax(taxable,bands);
+  return { net:gross-tax-social,tax,social,taxable,taxFree:0,generalCredit:0,labourCredit:0,payrollTax:tax,socialTax:social };
+}
 const euro = new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
 
 export default function Home() {
@@ -68,17 +120,17 @@ export default function Home() {
     const holidayAllowance = country === "nl" ? (holidayMode === "included" ? salary * (8 / 108) : salary * .08) : 0;
     const baseSalary = country === "nl" && holidayMode === "included" ? salary - holidayAllowance : salary;
     const annualGross = baseSalary + holidayAllowance;
-    const payroll = country === "nl" ? netherlandsNet(annualGross, regime, includeSocialSecurity) : portugalNet(annualGross, regime);
+    const payroll = country === "nl" ? netherlandsNet(annualGross, regime, includeSocialSecurity) : country === "pt" ? portugalNet(annualGross, regime) : country === "de" ? germanyNet(annualGross) : country === "es" ? spainNet(annualGross,regime) : country === "it" ? italyNet(annualGross,regime) : country === "dk" ? denmarkNet(annualGross) : switzerlandNet(annualGross,city);
     const base = livingCosts[city];
     const rent = rentMode === "share" ? base.rent * .62 : base.rent;
-    const health = country === "nl" ? 165 : 45;
+    const health = country === "nl" ? 165 : country === "ch" ? 420 : country === "pt" || country === "es" || country === "it" ? 55 : 0;
     const household = rent + base.groceries + base.utilities + base.transport + base.leisure + health + kids * base.childcare;
     const averageMonthlyNet = payroll.net / 12;
     const holidayNet = holidayAllowance ? holidayAllowance * (payroll.net / annualGross) : 0;
     const monthlyNet = holidayPayout === "may" && holidayAllowance ? (payroll.net - holidayNet) / 12 : averageMonthlyNet;
     return { ...payroll, annualGross, baseSalary, holidayAllowance, holidayNet, averageMonthlyNet, monthlyNet, household, savings: monthlyNet - household, rent, health };
   }, [country, city, salary, kids, regime, rentMode, holidayMode, holidayPayout, includeSocialSecurity]);
-  function chooseCountry(next: Country) { setCountry(next); setCity(cities[next][0]); setRegime(true); }
+  function chooseCountry(next: Country) { setCountry(next); setCity(cities[next][0]); setRegime(Boolean(countryInfo[next].regime)); }
   const costs = livingCosts[city];
   const costRows: [string, number][] = [["Housing", result.rent], ["Groceries", costs.groceries], ["Utilities", costs.utilities], ["Transport", costs.transport], ["Health", result.health], ["Lifestyle", costs.leisure], ...(kids ? [[`Childcare × ${kids}`, costs.childcare * kids] as [string, number]] : [])];
 
@@ -89,19 +141,19 @@ export default function Home() {
       <div className="sectionHead"><div><span className="step">01</span><h2>Build your scenario</h2></div><p>Indicative annual tax calculation for an employee under retirement age.</p></div>
       <div className="workspace">
         <form className="inputs" onSubmit={e => e.preventDefault()}>
-          <label className="fieldLabel">COUNTRY</label><div className="countryToggle"><button type="button" className={country === "nl" ? "active" : ""} onClick={() => chooseCountry("nl")}><span>NL</span> Netherlands</button><button type="button" className={country === "pt" ? "active" : ""} onClick={() => chooseCountry("pt")}><span>PT</span> Portugal</button></div>
+          <label className="fieldLabel">COUNTRY</label><div className="countryToggle">{countryOrder.map(item => <button type="button" key={item} className={country === item ? "active" : ""} onClick={() => chooseCountry(item)}><span>{countryInfo[item].code}</span>{countryInfo[item].name}</button>)}</div>
           <div className="twoCol"><label><span className="fieldLabel">CITY</span><select value={city} onChange={e => setCity(e.target.value as City)}>{cities[country].map(item => <option key={item}>{item}</option>)}</select></label><label><span className="fieldLabel">CHILDREN</span><select value={kids} onChange={e => setKids(Number(e.target.value))}><option value="0">No children</option><option value="1">1 child</option><option value="2">2 children</option><option value="3">3 children</option></select></label></div>
           <label className="salaryField"><span className="fieldLabel">GROSS ANNUAL SALARY</span><span className="salaryInput"><i>€</i><input aria-label="Gross annual salary" type="number" min="10000" step="1000" value={salary} onChange={e => setSalary(Number(e.target.value))}/><em>/ year</em></span></label><input className="range" aria-label="Salary slider" type="range" min="20000" max="180000" step="1000" value={salary} onChange={e => setSalary(Number(e.target.value))}/><div className="rangeEnds"><span>€20k</span><span>€180k</span></div>
           {country === "nl" && <div className="holidayCard"><div className="holidayHead"><span><span className="fieldLabel">8% HOLIDAY ALLOWANCE</span><small>Is vakantiegeld already part of the salary above?</small></span><div className="segmented"><button type="button" className={holidayMode === "included" ? "selected" : ""} onClick={() => setHolidayMode("included")}>Included</button><button type="button" className={holidayMode === "onTop" ? "selected" : ""} onClick={() => setHolidayMode("onTop")}>Paid on top</button></div></div><div className="holidayPayout"><span>Payment timing</span><div className="segmented"><button type="button" className={holidayPayout === "spread" ? "selected" : ""} onClick={() => setHolidayPayout("spread")}>Spread over 12</button><button type="button" className={holidayPayout === "may" ? "selected" : ""} onClick={() => setHolidayPayout("may")}>Paid in May</button></div></div></div>}
-          {country === "nl" ? <section className="dutchTaxCard"><div className="taxCardTitle"><span className="fieldLabel">DUTCH TAX SETTINGS</span><small>Adjust what applies to your offer.</small></div><div className="taxSettingRow"><span><b>30% ruling</b><small>Up to 30% of qualifying pay may be tax-free.</small></span><button type="button" role="switch" aria-label="Apply 30% ruling" aria-checked={regime} className={`switch ${regime ? "on" : ""}`} onClick={() => setRegime(!regime)}><span/></button></div><div className="taxSettingRow"><span><b>National insurance</b><small>AOW, Anw and Wlz contributions</small></span><button type="button" role="switch" aria-label="Include national insurance" aria-checked={includeSocialSecurity} className={`switch ${includeSocialSecurity ? "on" : ""}`} onClick={() => setIncludeSocialSecurity(!includeSocialSecurity)}><span/></button></div><div className="eligibility"><span className="infoMark">i</span><p><b>Who may qualify?</b> Generally, employees recruited from abroad with scarce expertise who lived more than 150 km from the Dutch border for over 16 of the previous 24 months. The 2026 taxable-salary norm is €48,013 (€36,497 if under 30 with a qualifying master’s); qualifying researchers may be exempt. Your employer applies with you.</p></div></section> : <div className="regimeCard"><div><span className="fieldLabel">EXPAT TAX REGIME</span><strong>IFICI (NHR 2.0)</strong><small>20% rate on eligible Portuguese-source employment income.</small></div><button type="button" role="switch" aria-label="Apply IFICI" aria-checked={regime} className={`switch ${regime ? "on" : ""}`} onClick={() => setRegime(!regime)}><span/></button></div>}
+          {country === "nl" ? <section className="dutchTaxCard"><div className="taxCardTitle"><span className="fieldLabel">DUTCH TAX SETTINGS</span><small>Adjust what applies to your offer.</small></div><div className="taxSettingRow"><span><b>30% ruling</b><small>Up to 30% of qualifying pay may be tax-free.</small></span><button type="button" role="switch" aria-label="Apply 30% ruling" aria-checked={regime} className={`switch ${regime ? "on" : ""}`} onClick={() => setRegime(!regime)}><span/></button></div><div className="taxSettingRow"><span><b>National insurance</b><small>AOW, Anw and Wlz contributions</small></span><button type="button" role="switch" aria-label="Include national insurance" aria-checked={includeSocialSecurity} className={`switch ${includeSocialSecurity ? "on" : ""}`} onClick={() => setIncludeSocialSecurity(!includeSocialSecurity)}><span/></button></div><div className="eligibility"><span className="infoMark">i</span><p><b>Who may qualify?</b> Generally, employees recruited from abroad with scarce expertise who lived more than 150 km from the Dutch border for over 16 of the previous 24 months. The 2026 taxable-salary norm is €48,013 (€36,497 if under 30 with a qualifying master’s); qualifying researchers may be exempt. Your employer applies with you.</p></div></section> : countryInfo[country].regime ? <div className="regimeCard"><div><span className="fieldLabel">EXPAT TAX REGIME</span><strong>{countryInfo[country].regime}</strong><small>{countryInfo[country].regimeHint}</small></div><button type="button" role="switch" aria-label={`Apply ${countryInfo[country].regime}`} aria-checked={regime} className={`switch ${regime ? "on" : ""}`} onClick={() => setRegime(!regime)}><span/></button></div> : <div className="standardCard"><span className="fieldLabel">TAX TREATMENT</span><b>Standard resident taxation</b><small>{country === "ch" ? "Income tax varies by canton and municipality; the selected city drives this estimate." : country === "dk" ? "Includes 8% labour-market contribution, state tax and an indicative municipal rate." : "Single employee estimate without church tax or optional personal deductions."}</small></div>}
           <div className="housingRow"><span><b>Housing</b><small>How will you live?</small></span><div><button type="button" className={rentMode === "solo" ? "selected" : ""} onClick={() => setRentMode("solo")}>My own place</button><button type="button" className={rentMode === "share" ? "selected" : ""} onClick={() => setRentMode("share")}>Shared</button></div></div>
         </form>
         <aside className="results" aria-live="polite">
           <div className="resultTop"><span>YOUR ESTIMATED MONTHLY OUTCOME</span><b>{city}, {country.toUpperCase()}</b></div><div className="netBlock"><small>{holidayPayout === "may" && result.holidayAllowance ? "REGULAR-MONTH NET" : "NET INCOME"}</small><strong>{euro.format(result.monthlyNet)}</strong><span>{holidayPayout === "may" && result.holidayAllowance ? `per regular month · May adds about ${euro.format(result.holidayNet)} net holiday pay` : "per month · annualized over 12 months"}</span><div className="summaryStats"><div><small>Annual net</small><b>{euro.format(result.net)}</b></div><div><small>Effective tax</small><b>{Math.round(result.tax / result.annualGross * 100)}%</b></div><div><small>Gross package</small><b>{euro.format(result.annualGross)}</b></div></div></div>
-          <div className="flow"><div><span>{result.holidayAllowance ? "Total gross package" : "Gross salary"}</span><b>{euro.format(result.annualGross/12)}</b></div>{result.holidayAllowance > 0 && <div><span>{holidayMode === "included" ? "Holiday allowance included" : "Holiday allowance on top"}</span><b>{euro.format(result.holidayAllowance/12)}</b></div>}<div><span>Income tax</span><b>− {euro.format(result.tax/12)}</b></div>{country === "pt" && <div><span>Social security</span><b>− {euro.format(result.social/12)}</b></div>}<div><span>Living costs</span><b>− {euro.format(result.household)}</b></div></div>
+          <div className="flow"><div><span>{result.holidayAllowance ? "Total gross package" : "Gross salary"}</span><b>{euro.format(result.annualGross/12)}</b></div>{result.holidayAllowance > 0 && <div><span>{holidayMode === "included" ? "Holiday allowance included" : "Holiday allowance on top"}</span><b>{euro.format(result.holidayAllowance/12)}</b></div>}<div><span>Income tax</span><b>− {euro.format(result.tax/12)}</b></div>{country !== "nl" && <div><span>Employee social contributions</span><b>− {euro.format(result.social/12)}</b></div>}<div><span>Living costs</span><b>− {euro.format(result.household)}</b></div></div>
           {country === "nl" && <details className="payrollBreakdown" open><summary>Monthly net income breakdown <span>⌄</span></summary><div className="payrollRows"><div><span>Gross package</span><b>{euro.format(result.annualGross/12)}</b></div>{result.taxFree > 0 && <div className="muted"><span>Tax-free under 30% ruling</span><b>{euro.format(result.taxFree/12)}</b></div>}<div className="muted"><span>Taxable income</span><b>{euro.format(result.taxable/12)}</b></div><div><span>Payroll tax before credits</span><b>− {euro.format(result.payrollTax/12)}</b></div>{includeSocialSecurity && <div><span>National insurance</span><b>− {euro.format(result.socialTax/12)}</b></div>}<div className="credit"><span>General tax credit</span><b>+ {euro.format(result.generalCredit/12)}</b></div><div className="credit"><span>Labour tax credit</span><b>+ {euro.format(result.labourCredit/12)}</b></div><div className="breakdownTotal"><span>Monthly net income</span><b>{euro.format(result.monthlyNet)}</b></div></div></details>}
           <div className={`savings ${result.savings < 0 ? "negative" : ""}`}><span><small>POSSIBLE SAVINGS</small><b>{euro.format(result.savings)}</b></span><em>{Math.round(result.savings/result.monthlyNet*100)}% of net</em></div>
-          <div className="costBreakdown"><div className="costTitle"><b>Monthly cost estimate</b><span>{city} · {rentMode}</span></div><div className="costMeter"><span style={{width: `${Math.min(100, Math.max(0, result.household / result.monthlyNet * 100))}%`}}/></div><div className="costShare">Living costs use approximately {Math.round(result.household / result.monthlyNet * 100)}% of net income</div>{costRows.map(([name,amount]) => <div className="costRow" key={name}><span>{name}</span><b>{euro.format(amount)}</b></div>)}</div><p className="resultNote">A planning estimate, not tax advice. Pension, benefits, bonuses and personal deductions are excluded.</p>
+          <div className="costBreakdown"><div className="costTitle"><b>Monthly cost estimate</b><span>{city} · {rentMode}</span></div><div className="costMeter"><span style={{width: `${Math.min(100, Math.max(0, result.household / result.monthlyNet * 100))}%`}}/></div><div className="costShare">Living costs use approximately {Math.round(result.household / result.monthlyNet * 100)}% of net income</div>{costRows.map(([name,amount]) => <div className="costRow" key={name}><span>{name}</span><b>{euro.format(amount)}</b></div>)}</div><p className="resultNote">A planning estimate in euro equivalents, not tax advice. Local, family, pension, benefit and personal-deduction rules may materially change the result.</p>
         </aside>
       </div>
     </section>

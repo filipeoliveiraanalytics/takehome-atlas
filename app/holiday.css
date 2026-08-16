@@ -231,10 +231,24 @@ body {
 .netBlock small,
 .savings small { color: rgba(242,238,228,.56); }
 .countryToggle {
+  grid-template-columns: repeat(2,minmax(0,1fr));
   gap: 8px;
   padding: 0;
   border: 0;
 }
+.countryToggle button { display: flex; align-items: center; min-width: 0; text-align: left; font-size: 11px; }
+.standardCard {
+  margin-top: 22px;
+  padding: 17px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid var(--dark-line);
+  border-radius: 9px;
+  background: var(--surface-2);
+}
+.standardCard b { font-size: 13px; font-weight: 550; }
+.standardCard small { color: rgba(242,238,228,.54); font-size: 10px; line-height: 1.5; }
 .countryToggle button {
   border: 1px solid var(--dark-line) !important;
   border-radius: 7px;
