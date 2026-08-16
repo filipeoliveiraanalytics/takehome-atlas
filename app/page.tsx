@@ -84,7 +84,7 @@ export default function Home() {
 
   return <main>
     <nav className="nav"><a className="brand" href="#top"><span className="brandMark">R</span> ROAM</a><div className="navLinks"><a href="#calculator">Calculator</a><a href="#method">Methodology</a></div><button className="saveButton">Save scenario <span>↗</span></button></nav>
-    <section className="hero" id="top"><div className="eyebrow"><span>●</span> THE RELOCATION SALARY CALCULATOR</div><h1>Know what’s left<br/>after the move.</h1><p>Compare take-home pay, local living costs and real monthly savings—before you accept the offer.</p><a href="#calculator" className="heroCta">Run your numbers <span>↓</span></a><div className="heroStamp"><b>2026</b><span>Tax rules<br/>& cost data</span></div></section>
+    <section className="hero" id="top"><div className="eyebrow"><span>●</span> NET SALARY, HONESTLY</div><h1>Every offer, converted into <span>what you actually keep.</span></h1><p>Compare take-home pay, expat tax regimes, local living costs and realistic monthly savings before you accept the offer.</p><a href="#calculator" className="heroCta">Run your numbers <span>↓</span></a><div className="heroStamp"><b>2026</b><span>Tax rules<br/>& cost data</span></div></section>
     <section className="calculator" id="calculator">
       <div className="sectionHead"><div><span className="step">01</span><h2>Build your scenario</h2></div><p>Indicative annual tax calculation for an employee under retirement age.</p></div>
       <div className="workspace">
