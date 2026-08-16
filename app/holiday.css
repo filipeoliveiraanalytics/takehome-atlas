@@ -41,9 +41,58 @@
 .segmented button + button { border-left: 0; }
 .segmented button.selected { background: var(--ink); color: white; }
 
+.dutchOptions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: end;
+  margin-top: 14px;
+  padding: 18px;
+  background: #e7e0d2;
+}
+
+.dutchOptions label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dutchOptions select:disabled { opacity: .5; }
+.socialOption { display: flex; align-items: center; gap: 18px; }
+.socialOption > span { display: flex; flex-direction: column; gap: 4px; }
+.socialOption b { font-size: 12px; }
+.socialOption small { font-size: 10px; opacity: .62; }
+
+.payrollBreakdown {
+  margin-top: 20px;
+  background: rgba(243,238,227,.55);
+  padding: 0 18px;
+}
+
+.payrollBreakdown summary {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 0;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+  list-style: none;
+}
+
+.payrollBreakdown summary::-webkit-details-marker { display: none; }
+.payrollBreakdown[open] summary { border-bottom: 1px solid var(--line); }
+.payrollBreakdown[open] summary span { transform: rotate(180deg); }
+.payrollRows { padding: 9px 0 14px; }
+.payrollRows > div { display: flex; justify-content: space-between; padding: 5px 0; font-size: 11px; }
+.payrollRows .muted { opacity: .62; }
+.payrollRows .credit b { color: #245b32; }
+.payrollRows .breakdownTotal { margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--line); font-weight: 900; }
+
 @media (max-width: 600px) {
   .holidayHead,
   .holidayPayout { align-items: flex-start; flex-direction: column; }
   .segmented { width: 100%; }
   .segmented button { flex: 1; }
+  .dutchOptions { grid-template-columns: 1fr; align-items: stretch; }
+  .socialOption { justify-content: space-between; }
 }
