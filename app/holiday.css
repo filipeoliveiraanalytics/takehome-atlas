@@ -654,3 +654,106 @@ footer,
 .saveButton {
   transition: background-color .28s ease, border-color .28s ease, color .28s ease;
 }
+
+/* Strong country recognition */
+main { position: relative; --flag: linear-gradient(90deg,var(--lime),var(--orange)); --glow: color-mix(in srgb,var(--lime) 20%,transparent); }
+main::before {
+  content: "";
+  position: fixed;
+  z-index: 100;
+  inset: 0 0 auto;
+  height: 7px;
+  background: var(--flag);
+  box-shadow: 0 2px 18px color-mix(in srgb,var(--orange) 30%,transparent);
+  transition: background .28s ease, box-shadow .28s ease;
+}
+main[data-country="nl"] { --flag:linear-gradient(90deg,#ae1c28 0 33.33%,#fff 33.33% 66.66%,#21468b 66.66%); --glow:rgba(255,138,52,.23); }
+main[data-country="pt"] { --flag:linear-gradient(90deg,#046a38 0 40%,#da291c 40%); --glow:rgba(4,106,56,.3); }
+main[data-country="de"] { --flag:linear-gradient(90deg,#171717 0 33.33%,#dd0000 33.33% 66.66%,#ffcc00 66.66%); --glow:rgba(255,204,0,.24); }
+main[data-country="ch"] { --flag:linear-gradient(90deg,#d52b1e 0 38%,#fff 38% 62%,#d52b1e 62%); --glow:rgba(213,43,30,.28); }
+main[data-country="es"] { --flag:linear-gradient(90deg,#aa151b 0 25%,#f1bf00 25% 75%,#aa151b 75%); --glow:rgba(241,191,0,.24); }
+main[data-country="dk"] { --flag:linear-gradient(90deg,#c8102e 0 28%,#fff 28% 35%,#c8102e 35% 55%,#fff 55% 62%,#c8102e 62%); --glow:rgba(200,16,46,.3); }
+main[data-country="it"] { --flag:linear-gradient(90deg,#009246 0 33.33%,#fff 33.33% 66.66%,#ce2b37 66.66%); --glow:rgba(0,146,70,.25); }
+main[data-country="gb"] { --flag:linear-gradient(90deg,#012169 0 30%,#fff 30% 38%,#c8102e 38% 62%,#fff 62% 70%,#012169 70%); --glow:rgba(65,105,180,.28); }
+.hero {
+  background-image: radial-gradient(circle at 88% 18%,var(--glow) 0,transparent 38%);
+  transition: background-image .28s ease;
+}
+.calculator { position: relative; }
+.calculator::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: var(--flag);
+  opacity: .9;
+}
+.countryToggle button {
+  position: relative;
+  overflow: hidden;
+  padding-top: 17px;
+}
+.countryToggle button::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  opacity: .8;
+}
+.countryToggle button[data-code="nl"]::before { background:linear-gradient(90deg,#ae1c28 0 33%,#fff 33% 66%,#21468b 66%); }
+.countryToggle button[data-code="pt"]::before { background:linear-gradient(90deg,#046a38 0 40%,#da291c 40%); }
+.countryToggle button[data-code="de"]::before { background:linear-gradient(90deg,#171717 0 33%,#dd0000 33% 66%,#ffcc00 66%); }
+.countryToggle button[data-code="ch"]::before { background:linear-gradient(90deg,#d52b1e 0 40%,#fff 40% 60%,#d52b1e 60%); }
+.countryToggle button[data-code="es"]::before { background:linear-gradient(90deg,#aa151b 0 25%,#f1bf00 25% 75%,#aa151b 75%); }
+.countryToggle button[data-code="dk"]::before { background:linear-gradient(90deg,#c8102e 0 42%,#fff 42% 52%,#c8102e 52%); }
+.countryToggle button[data-code="it"]::before { background:linear-gradient(90deg,#009246 0 33%,#fff 33% 66%,#ce2b37 66%); }
+.countryToggle button[data-code="gb"]::before { background:linear-gradient(90deg,#012169 0 35%,#fff 35% 43%,#c8102e 43% 57%,#fff 57% 65%,#012169 65%); }
+.countryToggle button.active::before { height: 6px; opacity: 1; }
+
+/* Hover, focus and tactile feedback */
+button,
+select,
+input { outline-offset: 3px; }
+button:focus-visible,
+select:focus-visible,
+input:focus-visible { outline: 2px solid var(--lime); }
+@media (hover:hover) {
+  .countryToggle button:hover {
+    z-index: 1;
+    border-color: color-mix(in srgb,var(--lime) 65%,transparent) !important;
+    background: color-mix(in srgb,var(--surface-2) 76%,var(--lime));
+    color: var(--cream);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,.18);
+  }
+  .countryToggle button:hover::before { height: 6px; opacity: 1; }
+  .segmented button:hover,
+  .housingRow button:hover {
+    border-color: var(--lime);
+    color: var(--cream);
+    background: color-mix(in srgb,var(--surface-2) 74%,var(--lime));
+  }
+  .switch:hover { border-color: var(--lime); box-shadow: 0 0 0 4px color-mix(in srgb,var(--lime) 12%,transparent); }
+  select:hover { border-color: color-mix(in srgb,var(--lime) 60%,transparent); }
+  .heroCta:hover,
+  .saveButton:hover { transform: translateY(-2px); box-shadow: 0 9px 24px color-mix(in srgb,var(--lime) 18%,transparent); }
+  .netBlock:hover,
+  .flow:hover,
+  .payrollBreakdown:hover,
+  .savings:hover,
+  .costBreakdown:hover { border-color: color-mix(in srgb,var(--lime) 38%,var(--dark-line)); }
+}
+.countryToggle button,
+.segmented button,
+.housingRow button,
+.switch,
+.heroCta,
+.saveButton,
+.netBlock,
+.flow,
+.payrollBreakdown,
+.savings,
+.costBreakdown { transition: transform .18s ease,box-shadow .18s ease,background-color .28s ease,border-color .2s ease,color .2s ease; }
+@media (prefers-reduced-motion:reduce) {
+  *,*::before,*::after { scroll-behavior:auto !important; transition-duration:.01ms !important; animation-duration:.01ms !important; }
+}
