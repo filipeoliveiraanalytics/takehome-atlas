@@ -156,3 +156,86 @@ export function switzerlandNet(gross: number, city: "Zurich" | "Geneva") {
     socialTax: social,
   };
 }
+
+const SPAIN_STATE_BANDS: TaxBand[] = [
+  [12_450, 0.095],
+  [20_200, 0.12],
+  [35_200, 0.15],
+  [60_000, 0.185],
+  [300_000, 0.225],
+  [Infinity, 0.245],
+];
+
+const MADRID_BANDS: TaxBand[] = [
+  [13_362.22, 0.085],
+  [19_004.63, 0.107],
+  [35_425.68, 0.128],
+  [57_320.4, 0.174],
+  [Infinity, 0.205],
+];
+
+const CATALONIA_BANDS: TaxBand[] = [
+  [12_500, 0.095],
+  [22_000, 0.125],
+  [33_000, 0.16],
+  [53_000, 0.19],
+  [90_000, 0.215],
+  [120_000, 0.235],
+  [175_000, 0.245],
+  [Infinity, 0.255],
+];
+
+function spainEmployeeSocialContributions(gross: number) {
+  const maximumBase = 61_214.4;
+  const firstSolidarityCeiling = 67_335.84;
+  const secondSolidarityCeiling = 91_821.6;
+  const ordinary = Math.min(gross, maximumBase) * 0.065;
+  const solidarityOne = Math.max(0, Math.min(gross, firstSolidarityCeiling) - maximumBase) * 0.0019;
+  const solidarityTwo = Math.max(0, Math.min(gross, secondSolidarityCeiling) - firstSolidarityCeiling) * 0.0021;
+  const solidarityThree = Math.max(0, gross - secondSolidarityCeiling) * 0.0024;
+  return ordinary + solidarityOne + solidarityTwo + solidarityThree;
+}
+
+export function spainNet(
+  gross: number,
+  beckhamRegime: boolean,
+  city: "Madrid" | "Barcelona",
+) {
+  const social = spainEmployeeSocialContributions(gross);
+  const taxable = Math.max(0, gross - social - 2_000);
+
+  if (beckhamRegime) {
+    const tax = Math.min(gross, 600_000) * 0.24 + Math.max(0, gross - 600_000) * 0.47;
+    return {
+      net: gross - tax - social,
+      tax,
+      social,
+      taxable: gross,
+      taxFree: 0,
+      generalCredit: 0,
+      labourCredit: 0,
+      payrollTax: tax,
+      socialTax: social,
+    };
+  }
+
+  const regionalBands = city === "Barcelona" ? CATALONIA_BANDS : MADRID_BANDS;
+  const regionalMinimum = city === "Barcelona" ? 5_550 : 5_956.65;
+  const stateTax = progressiveTax(taxable, SPAIN_STATE_BANDS)
+    - progressiveTax(5_550, SPAIN_STATE_BANDS);
+  const regionalTax = progressiveTax(taxable, regionalBands)
+    - progressiveTax(regionalMinimum, regionalBands);
+  const tax = Math.max(0, stateTax + regionalTax);
+
+  return {
+    net: gross - tax - social,
+    tax,
+    social,
+    taxable,
+    taxFree: 0,
+    generalCredit: 0,
+    labourCredit: 0,
+    payrollTax: tax,
+    socialTax: social,
+  };
+}

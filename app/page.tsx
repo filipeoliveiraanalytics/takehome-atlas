@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { germanyNet, portugalNet, switzerlandNet } from "./tax";
+import { germanyNet, portugalNet, spainNet, switzerlandNet } from "./tax";
 
 type Country = "nl" | "pt" | "de" | "ch" | "es" | "dk" | "it" | "gb";
 type City = "Amsterdam" | "Rotterdam" | "Lisbon" | "Porto" | "Berlin" | "Munich" | "Zurich" | "Geneva" | "Madrid" | "Barcelona" | "Copenhagen" | "Aarhus" | "Milan" | "Rome" | "London" | "Manchester";
@@ -69,14 +69,6 @@ function netherlandsNet(gross: number, ruling: boolean, includeSocialSecurity: b
   const due = Math.max(0, grossTax - generalCredit - labourCredit);
   return { net: gross - due, tax: due, social: socialTax, taxable, taxFree, generalCredit, labourCredit, payrollTax, socialTax };
 }
-function spainNet(gross:number, regime:boolean, city:City) {
-  const social=Math.min(gross,61200)*.065;
-  const taxable=Math.max(0,gross-social-2000);
-  const bands = city === "Barcelona" ? [[12450,.19],[20200,.24],[35200,.30],[60000,.375],[90000,.46],[175000,.47],[Infinity,.50]] as [number,number][] : [[12450,.18],[20200,.235],[35200,.285],[60000,.355],[300000,.435],[Infinity,.47]] as [number,number][];
-  const personalMinimumCredit = progressiveTax(Math.min(taxable,5550),bands);
-  const incomeTax=regime ? Math.min(gross,600000)*.24+Math.max(0,gross-600000)*.47 : Math.max(0,progressiveTax(taxable,bands)-personalMinimumCredit);
-  return { net:gross-incomeTax-social,tax:incomeTax,social,taxable,taxFree:regime?gross-taxable:0,generalCredit:0,labourCredit:0,payrollTax:incomeTax,socialTax:social };
-}
 function italyNet(gross:number, regime:boolean) {
   const social=gross*.0919; const exempt=regime?Math.min(gross*.5,300000):0; const taxable=Math.max(0,gross-social-exempt);
   const national=progressiveTax(taxable,[[28000,.23],[50000,.33],[Infinity,.43]]); const local=taxable*.02;
@@ -115,7 +107,7 @@ export default function Home() {
     const holidayAllowance = country === "nl" ? (holidayMode === "included" ? salary * (8 / 108) : salary * .08) : 0;
     const baseSalary = country === "nl" && holidayMode === "included" ? salary - holidayAllowance : salary;
     const annualGross = baseSalary + holidayAllowance;
-    const payroll = country === "nl" ? netherlandsNet(annualGross, regime, includeSocialSecurity) : country === "pt" ? portugalNet(annualGross, regime) : country === "de" ? germanyNet(annualGross) : country === "es" ? spainNet(annualGross,regime,city) : country === "it" ? italyNet(annualGross,regime) : country === "dk" ? denmarkNet(annualGross,regime,denmarkResearcher,city) : country === "gb" ? ukNet(annualGross) : switzerlandNet(annualGross, city as "Zurich" | "Geneva");
+    const payroll = country === "nl" ? netherlandsNet(annualGross, regime, includeSocialSecurity) : country === "pt" ? portugalNet(annualGross, regime) : country === "de" ? germanyNet(annualGross) : country === "es" ? spainNet(annualGross, regime, city as "Madrid" | "Barcelona") : country === "it" ? italyNet(annualGross,regime) : country === "dk" ? denmarkNet(annualGross,regime,denmarkResearcher,city) : country === "gb" ? ukNet(annualGross) : switzerlandNet(annualGross, city as "Zurich" | "Geneva");
     const base = livingCosts[city];
     const rent = rentMode === "share" ? base.rent * .62 : base.rent;
     const health = country === "nl" ? 165 : country === "ch" ? 420 : country === "pt" || country === "es" || country === "it" ? 55 : 0;
