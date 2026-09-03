@@ -19,8 +19,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host") ?? "localhost:3000";
   const protocol = requestHeaders.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
   const image = `${protocol}://${host}/og.png`;
-  const title = "Roam — Relocation Salary Calculator";
-  const description = "Compare net salary, living costs and possible savings across countries.";
+  const title = "Takehome Atlas — Global Salary Explorer";
+  const description = "Compare take-home salary, expat tax regimes, living costs and possible savings across countries.";
   return {
     title,
     description,

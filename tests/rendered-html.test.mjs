@@ -12,12 +12,13 @@ async function render() {
   );
 }
 
-test("server-renders the ROAM calculator", async () => {
+test("server-renders the Takehome Atlas calculator", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
   const html = await response.text();
-  assert.match(html, /<title>Roam — Relocation Salary Calculator<\/title>/i);
+  assert.match(html, /<title>Takehome Atlas — Global Salary Explorer<\/title>/i);
+  assert.match(html, /Takehome Atlas/);
   assert.match(html, /What would you actually keep in/);
   assert.match(html, /Run the numbers/);
   assert.match(html, /Netherlands/);
