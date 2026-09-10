@@ -23,6 +23,7 @@ test("server-renders the Takehome Atlas calculator", async () => {
     /<link[^>]+rel="canonical"[^>]+href="https:\/\/takehomeatlas\.com\/?"/i,
   );
   assert.match(html, /Takehome Atlas/);
+  assert.match(html, /class="brandGlobe"/);
   assert.match(html, /What would you actually keep in/);
   assert.match(html, /Run the numbers/);
   assert.match(html, /Netherlands/);
