@@ -37,12 +37,23 @@ function portugalSolidarityTax(taxableIncome: number) {
   return middleBand + topBand;
 }
 
-export function portugalNet(gross: number, ifici: boolean) {
+export type PortugalTaxRegime = false | "ifici" | "regressar";
+
+export function portugalNet(
+  gross: number,
+  regime: PortugalTaxRegime | boolean,
+) {
+  const selectedRegime = regime === true ? "ifici" : regime;
   const social = gross * 0.11;
+  const regressarExemption =
+    selectedRegime === "regressar" ? Math.min(gross, 250_000) * 0.5 : 0;
   // Category A deducts the greater of employee contributions or the statutory
   // specific deduction. At the benchmark salaries, the 11% contribution wins.
-  const taxable = Math.max(0, gross - Math.max(social, 4_587));
-  const baseTax = ifici
+  const taxable = Math.max(
+    0,
+    gross - regressarExemption - Math.max(social, 4_587),
+  );
+  const baseTax = selectedRegime === "ifici"
     ? taxable * 0.2
     : progressiveTax(taxable, PORTUGAL_2026_BANDS);
   const solidarityTax = portugalSolidarityTax(taxable);
@@ -53,7 +64,7 @@ export function portugalNet(gross: number, ifici: boolean) {
     tax,
     social,
     taxable,
-    taxFree: 0,
+    taxFree: regressarExemption,
     generalCredit: 0,
     labourCredit: 0,
     payrollTax: tax,

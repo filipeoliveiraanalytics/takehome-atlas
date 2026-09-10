@@ -28,3 +28,26 @@ test("Portugal 2026 applies solidarity tax above €80,000 taxable income", () =
   assert.equal(result.taxable, 89_000);
   assert.equal(result.tax, 18_025);
 });
+
+const regressarScenarios = [
+  { gross: 50_000, annualNet: 41_277.031 },
+  { gross: 80_000, annualNet: 64_521.047 },
+  { gross: 100_000, annualNet: 79_598.847 },
+];
+
+for (const scenario of regressarScenarios) {
+  test(`Portugal 2026: €${scenario.gross} Programa Regressar`, () => {
+    const result = portugalNet(scenario.gross, "regressar");
+
+    assert.equal(result.social, scenario.gross * 0.11);
+    assert.equal(result.taxFree, scenario.gross * 0.5);
+    assert.ok(Math.abs(result.net - scenario.annualNet) < 0.01);
+  });
+}
+
+test("Programa Regressar caps its 50% exclusion at €250,000 of income", () => {
+  const result = portugalNet(500_000, "regressar");
+
+  assert.equal(result.taxFree, 125_000);
+  assert.equal(result.taxable, 320_000);
+});
