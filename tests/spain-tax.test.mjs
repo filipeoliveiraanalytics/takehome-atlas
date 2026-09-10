@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { spainNet } from "../app/tax.ts";
+import { spainNet, spainPaymentSchedule } from "../app/tax.ts";
 
 const standardScenarios = [
   { city: "Madrid", gross: 50_000, net: 36_190.21 },
@@ -30,4 +30,18 @@ test("Spain 2026 applies employee solidarity contributions above the maximum bas
   const atMaximum = spainNet(61_214.4, true, "Madrid");
   const aboveMaximum = spainNet(62_214.4, true, "Madrid");
   assert.ok(Math.abs((aboveMaximum.social - atMaximum.social) - 1.9) < 0.01);
+});
+
+test("Spain 2026 separate payments preserve annual net and charge social contributions in regular payroll", () => {
+  const result = spainNet(80_000, false, "Madrid");
+  const schedule = spainPaymentSchedule(80_000, result.tax, result.social, "separate");
+  assert.ok(Math.abs(schedule.regularNet * 12 + schedule.extraNet * 2 - result.net) < 0.01);
+  assert.ok(Math.abs(schedule.extraNet - schedule.regularNet - result.social / 12) < 0.01);
+});
+
+test("Spain 2026 prorated payments spread annual net over 12 months", () => {
+  const result = spainNet(80_000, true, "Madrid");
+  const schedule = spainPaymentSchedule(80_000, result.tax, result.social, "prorated");
+  assert.ok(Math.abs(schedule.regularNet - result.net / 12) < 0.01);
+  assert.equal(schedule.extraNet, 0);
 });
