@@ -18,6 +18,10 @@ test("server-renders the Takehome Atlas calculator", async () => {
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
   const html = await response.text();
   assert.match(html, /<title>Takehome Atlas — Global Salary Explorer<\/title>/i);
+  assert.match(
+    html,
+    /<link[^>]+rel="canonical"[^>]+href="https:\/\/takehomeatlas\.com\/?"/i,
+  );
   assert.match(html, /Takehome Atlas/);
   assert.match(html, /What would you actually keep in/);
   assert.match(html, /Run the numbers/);

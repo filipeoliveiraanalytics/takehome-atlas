@@ -20,6 +20,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://takehomeatlas.com"),
   title,
   description,
+  alternates: { canonical: "/" },
   icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
   openGraph: { title, description, images: [{ url: "/og.png", width: 1732, height: 909 }] },
   twitter: { card: "summary_large_image", title, description, images: ["/og.png"] },
