@@ -381,6 +381,7 @@ export function italyNet(
   gross: number,
   useImpatriateRegime: boolean,
   city: "Milan" | "Rome",
+  qualifyingMinorChild = false,
 ) {
   // Standard private-sector employee assumption. In 2026 an additional 1%
   // employee contribution applies only to pay above EUR 56,224.
@@ -389,7 +390,7 @@ export function italyNet(
   const qualifyingIncome = useImpatriateRegime
     ? Math.min(employmentIncome, 600_000)
     : 0;
-  const taxFree = qualifyingIncome * 0.5;
+  const taxFree = qualifyingIncome * (qualifyingMinorChild ? 0.6 : 0.5);
   const taxable = employmentIncome - taxFree;
   const nationalTax = progressiveTax(taxable, ITALY_NATIONAL_BANDS);
   const employmentCredit = italyEmploymentCredit(taxable);
@@ -406,5 +407,27 @@ export function italyNet(
     labourCredit: employmentCredit,
     payrollTax: tax,
     socialTax: social,
+  };
+}
+
+export type ItalySalaryPayment = "thirteen" | "fourteen";
+
+export function italyPaymentSchedule(
+  gross: number,
+  tax: number,
+  social: number,
+  employmentCredit: number,
+  payment: ItalySalaryPayment,
+) {
+  const payments = payment === "fourteen" ? 14 : 13;
+  const taxBeforeEmploymentCredit = tax + employmentCredit;
+  const extraNet = (gross - social - taxBeforeEmploymentCredit) / payments;
+
+  // Employment tax credits are normally reflected in the 12 ordinary payslips,
+  // making the 13th/14th instalments lower than a regular payment.
+  return {
+    regularNet: extraNet + employmentCredit / 12,
+    extraNet,
+    extraPayments: payments - 12,
   };
 }
