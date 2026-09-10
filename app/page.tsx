@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { denmarkNet, germanyNet, italyNet, portugalNet, spainNet, switzerlandNet, type PortugalTaxRegime } from "./tax";
+import AnalyticsConsent from "./analytics-consent";
 
 type Country = "nl" | "pt" | "de" | "ch" | "es" | "dk" | "it" | "gb";
 type City = "Amsterdam" | "Rotterdam" | "Lisbon" | "Porto" | "Berlin" | "Munich" | "Zurich" | "Geneva" | "Madrid" | "Barcelona" | "Copenhagen" | "Aarhus" | "Milan" | "Rome" | "London" | "Manchester";
@@ -60,7 +61,7 @@ export default function Home(){
         <section className={`savings ${result.savings<0?"negative":""}`}><span><small>POSSIBLE SAVINGS</small><b>{money(result.savings)}</b><em>each month after estimated costs</em></span><strong>{Math.round(result.savings/result.monthlyNet*100)}% <small>of net</small></strong></section><section className="costBreakdown"><CardTitle title="Monthly cost estimate" sub={`${city} · ${rentMode==="solo"?"own place":"shared"}`} value={money(result.household)}/><div className="costMeter"><span style={{width:`${Math.min(100,Math.max(0,result.household/result.monthlyNet*100))}%`}}/></div><p className="costShare">Living costs use approximately {Math.round(result.household/result.monthlyNet*100)}% of net income</p>{costRows.map(([name,amount])=><div className="costRow" key={name}><span>{name}</span><b>{money(amount)}</b></div>)}</section><p className="resultNote">A planning estimate in local currency, not tax advice. Family, pension, benefit and personal-deduction rules may materially change the result.</p>
       </aside>
     </div></section>
-    <section className="method" id="method"><div className="methodHead"><span className="step">02</span><div><span className="eyebrow">THE METHOD</span><h2>One offer. The whole picture.</h2></div></div><div className="methodGrid"><article><b>01</b><h3>Net pay</h3><p>Progressive income tax, employee contributions and applicable credits modeled annually.</p></article><article><b>02</b><h3>Local costs</h3><p>City-level housing, transport, utilities, food, health and childcare assumptions.</p></article><article><b>03</b><h3>Expat regimes</h3><p>Compare the indicative impact while keeping eligibility caveats visible.</p></article></div></section><footer><a className="brand" href="#top"><BrandMark/><span>Takehome Atlas</span></a><p>See what you’ll take home, wherever you go.</p><span>2026 · PLANNING ESTIMATE</span></footer>
+    <section className="method" id="method"><div className="methodHead"><span className="step">02</span><div><span className="eyebrow">THE METHOD</span><h2>One offer. The whole picture.</h2></div></div><div className="methodGrid"><article><b>01</b><h3>Net pay</h3><p>Progressive income tax, employee contributions and applicable credits modeled annually.</p></article><article><b>02</b><h3>Local costs</h3><p>City-level housing, transport, utilities, food, health and childcare assumptions.</p></article><article><b>03</b><h3>Expat regimes</h3><p>Compare the indicative impact while keeping eligibility caveats visible.</p></article></div></section><footer><a className="brand" href="#top"><BrandMark/><span>Takehome Atlas</span></a><p>See what you’ll take home, wherever you go.</p><span>2026 · PLANNING ESTIMATE</span></footer><AnalyticsConsent/>
   </main>
 }
 
