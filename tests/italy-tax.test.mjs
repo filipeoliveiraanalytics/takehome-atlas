@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { italyNet } from "../app/tax.ts";
+import { italyNet, italyPaymentSchedule } from "../app/tax.ts";
 
 const cases = [
   [50_000, "Milan", false, 32_568],
@@ -31,3 +31,31 @@ test("the additional 1% INPS contribution starts above EUR 56,224", () => {
     80_000 * 0.0919 + (80_000 - 56_224) * 0.01,
   );
 });
+
+test("the enhanced impatriate regime exempts 60% with a qualifying minor child", () => {
+  const standardRelief = italyNet(80_000, true, "Milan");
+  const childRelief = italyNet(80_000, true, "Milan", true);
+  assert.ok(Math.abs(childRelief.taxFree - (80_000 - childRelief.social) * 0.6) < 0.01);
+  assert.ok(childRelief.net > standardRelief.net);
+});
+
+for (const payment of ["thirteen", "fourteen"]) {
+  test(`Italy ${payment}-payment schedule preserves annual net`, () => {
+    const result = italyNet(80_000, false, "Rome");
+    const schedule = italyPaymentSchedule(
+      80_000,
+      result.tax,
+      result.social,
+      result.labourCredit,
+      payment,
+    );
+    assert.ok(
+      Math.abs(
+        schedule.regularNet * 12
+          + schedule.extraNet * schedule.extraPayments
+          - result.net,
+      ) < 0.01,
+    );
+    assert.ok(schedule.regularNet >= schedule.extraNet);
+  });
+}
