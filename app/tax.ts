@@ -251,6 +251,28 @@ export function spainNet(
   };
 }
 
+export type SpainSalaryPayment = "separate" | "prorated";
+
+export function spainPaymentSchedule(
+  gross: number,
+  tax: number,
+  social: number,
+  payment: SpainSalaryPayment,
+) {
+  if (payment === "prorated") {
+    return { regularNet: (gross - tax - social) / 12, extraNet: 0 };
+  }
+
+  // Spain's contribution base prorates extraordinary pay over the 12 regular
+  // payroll months, so the two extra payments do not repeat that deduction.
+  const grossPerPayment = gross / 14;
+  const taxPerPayment = tax / 14;
+  return {
+    regularNet: grossPerPayment - taxPerPayment - social / 12,
+    extraNet: grossPerPayment - taxPerPayment,
+  };
+}
+
 export function denmarkNet(
   gross: number,
   useExpatScheme: boolean,
