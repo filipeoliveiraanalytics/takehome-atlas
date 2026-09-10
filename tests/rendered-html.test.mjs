@@ -23,5 +23,9 @@ test("server-renders the Takehome Atlas calculator", async () => {
   assert.match(html, /Run the numbers/);
   assert.match(html, /Netherlands/);
   assert.match(html, /Regime comparison/i);
+  assert.match(html, /Paid May\/June/);
+  assert.match(html, /This is not a contractual 13th month/);
+  assert.match(html, /National insurance included/);
+  assert.doesNotMatch(html, /AOW, Anw and Wlz contributions\./);
   assert.doesNotMatch(html, /codex-preview|Building your site|react-loading-skeleton/i);
 });
